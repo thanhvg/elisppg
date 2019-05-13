@@ -27,3 +27,23 @@ range: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 
 kind: 2 
 start: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 78 "character" 51)) 
 end: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 78 "character" 59)) 
+
+** convert `start` to point with lsp--position-to-point
+
+(:jsonrpc "2.0" :method "textDocument/documentHighlight" :params (:textDocument (:uri "file:///home/gvuong/git/ivt6/projects/web/src/webserver/src/routes/api/hvr-cameras.js") :position (:line 75 :character 10)) :id 24)
+start: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 75 "character" 10)) 
+end: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 75 "character" 18)) 
+point: 2182 
+start: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 76 "character" 16)) 
+end: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 76 "character" 24)) 
+point: 2242 
+start: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 78 "character" 51)) 
+end: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 78 "character" 59)) 
+point: 2304 
+
+** once you have the list of point you need to have
+
+- current point
+- compare current point to find next and prev points
+
+let check 
