@@ -1,4 +1,4 @@
-#+STARTUP:    align fold nodlcheck hidestars oddeven lognotestate indent 
+#+STARTUP:    align fold hidestars oddeven indent 
 
 * lsp next prev occurence
 
@@ -47,3 +47,8 @@ point: 2304
 - compare current point to find next and prev points
 
 let check 
+* helm evil mark
+reuse part of evil-show-marks to generate helm source
+use evil-goto-mark to go to buffer
+* helm lsp 
+symbols with context 
