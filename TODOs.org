@@ -52,3 +52,5 @@ reuse part of evil-show-marks to generate helm source
 use evil-goto-mark to go to buffer
 * helm lsp 
 symbols with context 
+* TODO get google search links
+* parse it to 
