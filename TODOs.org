@@ -53,4 +53,6 @@ use evil-goto-mark to go to buffer
 * helm lsp 
 symbols with context 
 * TODO get google search links
-* parse it to 
+* parse SO link
+* use async await lib
+https://nullprogram.com/blog/2019/03/10/
