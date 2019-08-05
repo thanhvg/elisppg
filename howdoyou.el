@@ -1,4 +1,7 @@
 ;;; -*- lexical-binding: t; -*-
+(require 'aio)
+(require 'promise)
+
 (defun howdoyou-google-to-links (dom)
   (let* ((my-divs (dom-by-class dom "jfp3ef"))
          (my-a-tags (mapcar (lambda (a-div)
@@ -58,3 +61,81 @@
 ;;                       (url-hexify-string "site:stackoverflow.com ")
 ;;                       (url-hexify-string query))))
 ;;     (message "%s" url)))
+
+(defun example12 ()
+  "Example using `xml-retrieve'."
+  (let ((wikipedia-url (concat "https://en.wikipedia.org/w/api.php"
+                               "?format=xml&action=query&prop=extracts"
+                               "&exintro=&explaintext=&titles=")))
+    (promise-chain (promise-all
+                    (vector
+                     (xml-retrieve (concat wikipedia-url (url-encode-url "GNU")))
+                     ;; Request after 2 seconds for load reduction.
+                     (wait-seconds 2
+                                   #'xml-retrieve
+                                   (concat wikipedia-url (url-encode-url "Emacs")))))
+      (then (lambda (xmls)
+              (message "%s" (get-short-text-first-tag (aref xmls 0) 'extract))
+              (message "%s" (get-short-text-first-tag (aref xmls 1) 'extract))))
+
+      (promise-catch (lambda (reason)
+                       (message "promise-catch: %s" reason))))))
+(defun xml-retrieve (url)               ; Same as `promise:xml-retrieve'
+  "Return `Promise' to resolve with XML object obtained by HTTP request."
+  (promise-new
+   (lambda (resolve reject)
+     (url-retrieve url
+                   (lambda (status)
+                     ;; All errors are reliably captured and rejected with appropriate values.
+                     (if (plist-get status :error)
+                         (funcall reject (plist-get status :error))
+                       (condition-case ex
+                           (with-current-buffer (current-buffer)
+                             (if (not (url-http-parse-headers))
+                                 (funcall reject (buffer-string))
+                               (search-forward-regexp "\n\\s-*\n" nil t)
+                               (funcall resolve (xml-parse-region))))
+                         (error (funcall reject ex)))))))))
+
+(defun wait-seconds (seconds fn &rest args) ; Same as `promise:run-at-time'
+  "Return `Promise' to execute the function after the specified time."
+  (promise-new (lambda (resolve _reject)
+                 (run-at-time seconds
+                              nil
+                              (lambda ()
+                                (funcall resolve (apply fn args)))))))
+(defun get-text-first-tag (xml tag)
+  "Returns the first text that matches TAG in XML."
+  (decode-coding-string (dom-text (cl-first (dom-by-tag xml tag)))
+                        'utf-8))
+
+(defun get-short-text-first-tag (xml tag)
+  "Truncate the text obtained with `get-text-first-tag'."
+  (concat (truncate-string-to-width (get-text-first-tag xml tag) 64)
+          " ..."))
+
+
+(defun howdoyou--promise-google-dom (url)
+  (promise-new
+   (lambda (resolve reject)
+     (url-retrieve url
+                   (lambda (status)
+                     ;; All errors are reliably captured and rejected with appropriate values.
+                     (if (plist-get status :error)
+                         (funcall reject (plist-get status :error))
+                       (condition-case ex
+                           (with-current-buffer (current-buffer)
+                             (if (not (url-http-parse-headers))
+                                 (funcall reject (buffer-string))
+                               (search-forward-regexp "\n\\s-*\n" nil t)
+                               (funcall resolve (libxml-parse-html-region (point-min) (point-max)))))
+                         (error (funcall reject ex)))))))))
+
+(defun howdoyou--promise-so-links (query)
+  (let ((url "https://www.google.com/search")
+        (args (concat "?q="
+                      (url-hexify-string "site:stackoverflow.com ")
+                      (url-hexify-string query))))
+
+    ))
+
