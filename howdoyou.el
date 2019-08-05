@@ -1,14 +1,8 @@
 ;;; -*- lexical-binding: t; -*-
 (require 'aio)
 (require 'promise)
+(require 'dom)
 
-(defun howdoyou-google-to-links (dom)
-  (let* ((my-divs (dom-by-class dom "jfp3ef"))
-         (my-a-tags (mapcar (lambda (a-div)
-                              (dom-attr (dom-child-by-tag a-div 'a) 'href))
-                            my-divs)))
-    (mapcar (lambda (it) (substring it 7))
-            (seq-filter (lambda (it) (if it t nil)) my-a-tags))))
 
 (defun howdoyou-google-search (query)
   (let ((url-request-method "GET")
@@ -34,7 +28,7 @@
          (contents (with-current-buffer (cdr my-web)
                      (prog1  (libxml-parse-html-region (point-min) (point-max))
                        (kill-buffer)))))
-    (howdoyou-google-to-links contents)))
+    (howdoyou--google-to-links contents)))
 
 (aio-defun howdoyou-so-links (query)
   (let ((links (aio-await (howdoyou-google-dom query))))
@@ -115,7 +109,16 @@
           " ..."))
 
 
-(defun howdoyou--promise-google-dom (url)
+
+(defun howdoyou--google-to-links (dom)
+  (let* ((my-divs (dom-by-class dom "jfp3ef"))
+         (my-a-tags (mapcar (lambda (a-div)
+                              (dom-attr (dom-child-by-tag a-div 'a) 'href))
+                            my-divs)))
+    (mapcar (lambda (it) (substring it 7))
+            (seq-filter (lambda (it) (if it t nil)) my-a-tags))))
+
+(defun howdoyou--promise-dom (url)
   (promise-new
    (lambda (resolve reject)
      (url-retrieve url
@@ -127,15 +130,47 @@
                            (with-current-buffer (current-buffer)
                              (if (not (url-http-parse-headers))
                                  (funcall reject (buffer-string))
-                               (search-forward-regexp "\n\\s-*\n" nil t)
+                               ;; (message "%s" (buffer-string))
+                               ;; (message "got it")
                                (funcall resolve (libxml-parse-html-region (point-min) (point-max)))))
                          (error (funcall reject ex)))))))))
 
-(defun howdoyou--promise-so-links (query)
+(defun howdoyou-promise-answer (query)
+  "query and print answer"
   (let ((url "https://www.google.com/search")
         (args (concat "?q="
                       (url-hexify-string "site:stackoverflow.com ")
                       (url-hexify-string query))))
+    (promise-chain (howdoyou--promise-dom (concat url args))
+      (then (lambda (dom)
+              (let ((my-link (howdoyou--google-to-links dom)))
+                (promise-resolve my-link))))
+      (then (lambda (links)
+              ;; (message "%s" links)
+              ;; (setq thanh links)
+              (howdoyou--promise-dom (car links))))
+      (then #'howdoyou--promise-so-answer)
+      (then #'howdoyou--print-answer))
+    nil))
 
-    ))
+(defun howdoyou--promise-so-answer (dom)
+  "get the first child in class answers"
+  (message "got the dom")
+  ;; (setq thanh dom)
+  (let* ((answer-dom (car (dom-by-class dom "^answer\s+"))))
+    (message "yay")
+    (dom-by-class answer-dom "post-text")))
+    ;; (dom-texts (dom-by-class answer-dom "post-text"))))
 
+(defun howdoyou--print-answer (answer)
+  "print answer to buffer"
+  (let ((howdoi-buffer (get-buffer-create "*How Do You*")))
+    (save-selected-window
+      (with-current-buffer howdoi-buffer
+        (read-only-mode -1)
+        (erase-buffer)
+        ;; (insert answer)
+        (shr-insert-document answer)
+        (eww-mode)
+        (goto-char (point-min)))
+      (pop-to-buffer howdoi-buffer))))
