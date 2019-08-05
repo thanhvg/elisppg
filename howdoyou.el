@@ -139,8 +139,12 @@
   "query and print answer"
   (let ((url "https://www.google.com/search")
         (args (concat "?q="
-                      (url-hexify-string "site:stackoverflow.com ")
-                      (url-hexify-string query))))
+                      (url-hexify-string query)
+                      (url-hexify-string " ")
+                      (url-hexify-string "site:stackoverflow.com OR ")
+                      (url-hexify-string "site:superuser.com OR ")
+                      (url-hexify-string "site:serverfault.com OR ")
+                      (url-hexify-string "site:askubunu.com "))))
     (promise-chain (howdoyou--promise-dom (concat url args))
       (then (lambda (dom)
               (let ((my-link (howdoyou--google-to-links dom)))
@@ -151,16 +155,17 @@
               (howdoyou--promise-dom (car links))))
       (then #'howdoyou--promise-so-answer)
       (then #'howdoyou--print-answer))
-    nil))
+    (concat url args)))
 
 (defun howdoyou--promise-so-answer (dom)
   "get the first child in class answers"
   (message "got the dom")
   ;; (setq thanh dom)
-  (let* ((answer-dom (car (dom-by-class dom "^answer\s+"))))
-    (message "yay")
-    (dom-by-class answer-dom "post-text")))
-    ;; (dom-texts (dom-by-class answer-dom "post-text"))))
+  (let ((answer-dom (car (dom-by-class dom "^answer\s?")))
+        (question-dom (car (dom-by-id dom "^question$"))))
+    (list (dom-by-class question-dom "post-text")
+          (dom-by-class answer-dom "post-text"))))
+;; (dom-texts (dom-by-class answer-dom "post-text"))))
 
 (defun howdoyou--print-answer (answer)
   "print answer to buffer"
@@ -170,7 +175,9 @@
         (read-only-mode -1)
         (erase-buffer)
         ;; (insert answer)
-        (shr-insert-document answer)
+        (shr-insert-document (car answer))
+        (shr-insert "\n=======Answer:=======\n")
+        (shr-insert-document (nth 1 answer))
         (eww-mode)
         (goto-char (point-min)))
       (pop-to-buffer howdoi-buffer))))
