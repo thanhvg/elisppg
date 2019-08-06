@@ -11,6 +11,7 @@
             (seq-filter (lambda (it) (if it t nil)) my-a-tags))))
 
 (defun howdoyou--promise-dom (url)
+  "promise a cons (url . dom)"
   (promise-new
    (lambda (resolve reject)
      (url-retrieve url
@@ -24,7 +25,7 @@
                                  (funcall reject (buffer-string))
                                ;; (message "%s" (buffer-string))
                                ;; (message "got it")
-                               (funcall resolve (libxml-parse-html-region (point-min) (point-max)))))
+                               (funcall resolve (cons url (libxml-parse-html-region (point-min) (point-max))))))
                          (error (funcall reject ex)))))))))
 (defvar howdoyou--links nil
   "list of so links from google search")
@@ -44,9 +45,8 @@
                       (url-hexify-string "site:serverfault.com OR ")
                       (url-hexify-string "site:askubunu.com"))))
     (promise-chain (howdoyou--promise-dom (concat url args))
-      (then (lambda (dom)
-              (let ((my-link (howdoyou--google-to-links dom)))
-                (promise-resolve my-link))))
+      (then (lambda (result)
+              (howdoyou--google-to-links (cdr result))))
       (then (lambda (links)
               ;; (message "%s" links)
               ;; (setq thanh links)
@@ -57,14 +57,24 @@
       (then #'howdoyou--print-answer))
     (concat url args)))
 
-(defun howdoyou--promise-so-answer (dom)
-  "get the first child in class answers"
-  (message "got the dom")
-  ;; (setq thanh dom)
-  (let ((answer-dom (car (dom-by-class dom "^answer\s?")))
-        (question-dom (car (dom-by-id dom "^question$"))))
-    (list (dom-by-class question-dom "post-text")
-          (dom-by-class answer-dom "post-text"))))
+(defun howdoyou--get-so-tags (dom)
+  (let ((tag-doms (dom-by-class (dom-by-class dom "^post-taglist")
+                                "^post-tag$")))
+    (mapcar #'dom-text tag-doms)))
+
+(defun howdoyou--promise-so-answer (result)
+  "get the first child in class answers and question from
+`result' which is a `(url . dom)' return `(url question answer tags)'"
+  ;; (message "got the (cdr result)")
+  (setq thanh (cdr result))
+  (let ((answer-dom (car (dom-by-class (cdr result) "^answer\s?")))
+        (question-dom (car (dom-by-id (cdr result) "^question$")))
+        (tags (howdoyou--get-so-tags (cdr result))))
+    ;; (tags '("sh" "yay")))
+    (list (car result)
+          (dom-by-class question-dom "post-text")
+          (dom-by-class answer-dom "post-text")
+          tags)))
 ;; (dom-texts (dom-by-class answer-dom "post-text"))))
 
 (defun howdoyou--print-answer (answer)
@@ -76,15 +86,36 @@
         (erase-buffer)
         (insert "#+STARTUP: showall indent\n")
         (insert "* Question\n")
-        (shr-insert-document (car answer))
+        (insert (replace-regexp-in-string "&.*$" "" (car answer))) ;; url
+        ;; (shr-insert-document (nth 1 answer))
+        (howdoyou--print-dom (nth 1 answer) (nth 3 answer))
+        ;; (setq thanh (nth 1 answer))
         ;; (shr-insert "==================Answer==================")
         ;; (insert "\n==================Answer==================\n")
+        ;; (insert (nth 3 answer))
+        (insert "tags: ")
+        (dolist (tag (nth 3 answer))
+          (insert tag)
+          (insert " "))
         (insert "\n* Answer")
-        (shr-insert-document (nth 1 answer))
+        (howdoyou--print-dom (nth 2 answer) (nth 3 answer))
+        ;; (shr-insert-document (nth 2 answer))
         ;; (eww-mode)
         (org-mode)
         (goto-char (point-min)))
       (pop-to-buffer howdoi-buffer))))
+
+(defun howdoyou--print-node (node tag)
+  (if (equal (dom-tag node) 'pre)
+      (progn (insert "\n#+begin_example " tag "\n")
+             (shr-insert-document node)
+             (insert "#+end_example\n"))
+    (shr-insert-document node)))
+
+(defun howdoyou--print-dom (dom tags)
+  (let ((children (dom-non-text-children dom)))
+    (dolist (child children)
+      (howdoyou--print-node child (car tags)))))
 
 (defun howdoyou-query (query)
   (interactive "sQuery: ")

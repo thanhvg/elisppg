@@ -60,10 +60,16 @@ https://nullprogram.com/blog/2019/03/10/
 this one is hard
 use promise.el instead
 * pretty print the dom 
-travese the dom tree and print the code part in side 
-org template and find the code type to highlight 
+travese the dom tree and print the code part in side done
 
+org template and find the code type to highlight
+each will have tag use the tag 
 * next and previous link
 local buffer var
 no, just a global state is ok 
 because you will have a singleton *How Dou You* buffer
+* insert link also
+done
+#+begin_example
+
+#+end_example
