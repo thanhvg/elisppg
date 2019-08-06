@@ -26,6 +26,11 @@
                                ;; (message "got it")
                                (funcall resolve (libxml-parse-html-region (point-min) (point-max)))))
                          (error (funcall reject ex)))))))))
+(defvar howdoyou--links nil
+  "list of so links from google search")
+
+(defvar howdoyou--current-link-index 0
+  "current index of link")
 
 (defun howdoyou-promise-answer (query)
   "query and print answer"
@@ -45,6 +50,8 @@
       (then (lambda (links)
               ;; (message "%s" links)
               ;; (setq thanh links)
+              (setq howdoyou--links links)
+              (setq howdoyou--current-link-index 0)
               (howdoyou--promise-dom (car links))))
       (then #'howdoyou--promise-so-answer)
       (then #'howdoyou--print-answer))
@@ -67,10 +74,40 @@
       (with-current-buffer howdoi-buffer
         (read-only-mode -1)
         (erase-buffer)
-        ;; (insert answer)
+        (insert "#+STARTUP: showall indent\n")
+        (insert "* Question\n")
         (shr-insert-document (car answer))
-        (shr-insert "==================Answer==================")
+        ;; (shr-insert "==================Answer==================")
+        ;; (insert "\n==================Answer==================\n")
+        (insert "\n* Answer")
         (shr-insert-document (nth 1 answer))
-        (eww-mode)
+        ;; (eww-mode)
+        (org-mode)
         (goto-char (point-min)))
       (pop-to-buffer howdoi-buffer))))
+
+(defun howdoyou-query (query)
+  (interactive "sQuery: ")
+  (howdoyou-promise-answer query))
+
+(defun howdoyou-n-link (n)
+  (setq howdoyou--current-link-index
+        (if (and (<= (+ n howdoyou--current-link-index) (length howdoyou--links))
+                 (>= (+ n howdoyou--current-link-index) 0))
+            (+ n howdoyou--current-link-index)
+          howdoyou--current-link-index))
+  (promise-chain
+      (howdoyou--promise-dom (nth howdoyou--current-link-index
+                                  howdoyou--links))
+    (then #'howdoyou--promise-so-answer)
+    (then #'howdoyou--print-answer)))
+
+(defun howdoyou-next-link ()
+  "go to next link"
+  (interactive)
+  (howdoyou-n-link 1))
+
+(defun howdoyou-previous-link ()
+  "go to previous link"
+  (interactive)
+  (howdoyou-n-link -1))
