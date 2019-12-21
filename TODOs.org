@@ -52,24 +52,3 @@ reuse part of evil-show-marks to generate helm source
 use evil-goto-mark to go to buffer
 * helm lsp 
 symbols with context 
-* DONE get google search links
-CLOSED: [2019-08-05 Mon 16:31]
-* parse SO link
-* use async await lib
-https://nullprogram.com/blog/2019/03/10/
-this one is hard
-use promise.el instead
-* pretty print the dom 
-travese the dom tree and print the code part in side done
-
-org template and find the code type to highlight
-each will have tag use the tag 
-* next and previous link
-local buffer var
-no, just a global state is ok 
-because you will have a singleton *How Dou You* buffer
-* insert link also
-done
-#+begin_example
-
-#+end_example
