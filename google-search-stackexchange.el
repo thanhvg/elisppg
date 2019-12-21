@@ -12,9 +12,9 @@
                 callback))
 
 
-(setq googlese-bufname "*stackexchange-suggestions*")
+(defvar googlese-bufname "*stackexchange-suggestions*")
 
-(setq googlese-keymap
+(defvar googlese-keymap
       (let ((map (make-sparse-keymap)))
         (set-keymap-parent map minibuffer-local-map)
         (define-key map (kbd "<up>") 'googlese-prev)
@@ -23,8 +23,7 @@
         map))
 
 
-(setq googlese-input nil)
-
+(defvar googlese-input nil)
 
 (defun googlese-search ()
   (interactive)
@@ -44,7 +43,6 @@
           (set-window-configuration wincfg))
 
         (my-get-stackoverflow-answers googlese-input))))
-
 
 (defun googlese-post-command ()
   (if (and (not (equal googlese-input (minibuffer-contents)))
@@ -69,7 +67,6 @@
                    (goto-char (point-min))
                    (googlese-highlight-line)
                    (setq googlese-input input))))))))))
-
 
 (defun googlese-highlight-line ()
   (put-text-property (line-beginning-position)
