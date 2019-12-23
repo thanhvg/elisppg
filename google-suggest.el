@@ -14,12 +14,12 @@
 (defvar google-bufname "*stackexchange-suggestions*")
 
 (defvar google-keymap
-      (let ((map (make-sparse-keymap)))
-        (set-keymap-parent map minibuffer-local-map)
-        (define-key map (kbd "C-k") 'google-prev)
-        (define-key map (kbd "C-j") 'google-next)
-        (define-key map (kbd "<RET>") 'exit-minibuffer)
-        map))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map (kbd "C-k") 'google-prev)
+    (define-key map (kbd "C-j") 'google-next)
+    (define-key map (kbd "<RET>") 'exit-minibuffer)
+    map))
 
 (defvar google-input nil)
 
@@ -108,3 +108,6 @@
     (delete-minibuffer-contents)
     (insert item)
     (setq google-input item)))
+
+;; (completing-read "yay:" '("1" "2" "3"))
+;; (howdoyou-query (google-search))

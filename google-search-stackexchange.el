@@ -15,12 +15,12 @@
 (defvar googlese-bufname "*stackexchange-suggestions*")
 
 (defvar googlese-keymap
-      (let ((map (make-sparse-keymap)))
-        (set-keymap-parent map minibuffer-local-map)
-        (define-key map (kbd "<up>") 'googlese-prev)
-        (define-key map (kbd "<down>") 'googlese-next)
-        (define-key map (kbd "<RET>") 'exit-minibuffer)
-        map))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map (kbd "<up>") 'googlese-prev)
+    (define-key map (kbd "<down>") 'googlese-next)
+    (define-key map (kbd "<RET>") 'exit-minibuffer)
+    map))
 
 
 (defvar googlese-input nil)
