@@ -1,8 +1,9 @@
 ;;; -*- lexical-binding: t -*-
 (defun my-turn-on-mode-line-maybe (buff)
-  (with-current-buffer buff
-    (when hidden-mode-line-mode
-      (hidden-mode-line-mode -1))))
+  (when (buffer-live-p buff)
+   (with-current-buffer buff
+     (when hidden-mode-line-mode
+       (hidden-mode-line-mode -1)))))
 
 ;; less than 1 sec, will fliker screen on eldoc trigger
 (defun my-turn-on-mode-line (buff)
@@ -25,8 +26,8 @@
 ;; so when buffer is killed it should trigger this run on
 ;; next select buffer to make sure mode-line is back
 ;; without this hook, K on a symbol then q, mode-line is gone forever
-(add-hook 'kill-buffer-hook #'my-turn-on-mode-line)
-(remove-hook 'kill-buffer-hook #'my-turn-on-mode-line)
+;; (add-hook 'kill-buffer-hook #'my-turn-on-mode-line)
+;; (remove-hook 'kill-buffer-hook #'my-turn-on-mode-line)
 
 ;; (defun my-mode-line ()
 ;;   (hidden-mode-line-mode -1))
