@@ -1,113 +1,115 @@
 ;; -*- lexical-binding: t -*-
-;;
+;; copypasta
+;; credit https://www.reddit.com/user/kcin
 ;; google and stackexchange integration
 ;; https://www.reddit.com/r/emacs/comments/e8cm8x/get_stackoverflow_answers_with_completion_without/
 
 (require 'json)
-(require 'cl)
 (require 'url)
 
-(defun google-get-completions (query callback)
-  (url-retrieve (format "http://suggestqueries.google.com/complete/search?client=chrome&q=%s" query)
-                callback))
+(defun google-suggest-get-completions (query callback)
+  "Ask google for suggestions of QUERY and pass json result to CALLBACK."
+  (url-retrieve
+   (format "http://suggestqueries.google.com/complete/search?client=chrome&q=%s"
+           query)
+   callback))
 
-(defvar google-bufname "*stackexchange-suggestions*")
+(defvar google-suggest-bufname "*google-suggestions*")
 
-(defvar google-keymap
+(defvar google-suggest-keymap
+  "Kemap to interact with suggestion buffer."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
-    (define-key map (kbd "C-k") 'google-prev)
-    (define-key map (kbd "C-j") 'google-next)
+    (define-key map (kbd "C-k") 'google-suggest-prev)
+    (define-key map (kbd "C-p") 'google-suggest-prev)
+    (define-key map (kbd "C-j") 'google-suggest-next)
+    (define-key map (kbd "C-n") 'google-suggest-next)
     (define-key map (kbd "<RET>") 'exit-minibuffer)
     map))
 
-(defvar google-input nil)
+(defvar google-suggest-input nil)
 
-(defun google-search ()
+;;;###autoload
+(defun google-suggest ()
+  "Get google suggestion while typing.
+C-j/C-n for next and C-k/C-p for previous suggestion."
   (interactive)
   (let ((wincfg (current-window-configuration)))
-    (pop-to-buffer google-bufname)
+    (pop-to-buffer google-suggest-bufname)
     (erase-buffer)
     (setq cursor-type nil)
-    (add-hook 'post-command-hook 'google-post-command)
-    (setq google-input nil)
+    (add-hook 'post-command-hook 'google-suggest-post-command)
+    (setq google-suggest-input nil)
     (if (unwind-protect
             (progn
-              (read-from-minibuffer "search for: " nil google-keymap)
-              (and google-input
-                   (not (equal google-input ""))))
-
-          (remove-hook 'post-command-hook 'google-post-command)
+              (read-from-minibuffer "search for: " nil google-suggest-keymap)
+              (and google-suggest-input
+                   (not (equal google-suggest-input ""))))
+          (remove-hook 'post-command-hook 'google-suggest-post-command)
           (set-window-configuration wincfg))
-        (message google-input))))
+        (message google-suggest-input))))
 
-(defun google-post-command ()
-  (if (and (not (equal google-input (minibuffer-contents)))
+(defun google-suggest-post-command ()
+  (if (and (not (equal google-suggest-input (minibuffer-contents)))
            (sit-for 0.3))
-
       (if (equal (minibuffer-contents) "")
-          (with-current-buffer (get-buffer google-bufname)
+          (with-current-buffer (get-buffer google-suggest-bufname)
             (erase-buffer))
-
         (let ((input (minibuffer-contents)))
-          (google-get-completions
+          (google-suggest-get-completions
            input
            (lambda (status &rest args)
              (unless status
                (search-forward "\n\n")
                (let ((suggestions (append (aref (json-read) 1) nil)))
-                 (with-current-buffer (get-buffer google-bufname)
+                 (with-current-buffer (get-buffer google-suggest-bufname)
                    (erase-buffer)
                    (insert input "\n")
                    (dolist (suggestion suggestions)
                      (insert suggestion "\n"))
                    (goto-char (point-min))
-                   (google-highlight-line)
-                   (setq google-input input))))))))))
+                   (google-suggest-highlight-line)
+                   (setq google-suggest-input input))))))))))
 
-(defun google-highlight-line ()
+(defun google-suggest-highlight-line ()
   (put-text-property (line-beginning-position)
                      (1+ (line-end-position))
                      'face
                      'highlight))
 
-
-(defun google-clear-highlight ()
+(defun google-suggest-clear-highlight ()
   (put-text-property (line-beginning-position)
                      (1+ (line-end-position))
                      'face
                      'nil))
 
-(defun google-next ()
+(defun google-suggest-next ()
+  "Select previous suggestion."
   (interactive)
-  (with-current-buffer (get-buffer google-bufname)
+  (with-current-buffer (get-buffer google-suggest-bufname)
     (unless (or (eobp)
                 (save-excursion
                   (forward-line 1)
                   (eobp)))
-      (google-clear-highlight)
+      (google-suggest-clear-highlight)
       (forward-line 1)
-      (google-item-selected))))
+      (google-suggest-item-selected))))
 
-
-(defun google-prev ()
+(defun google-suggest-prev ()
+  "Select next suggestion."
   (interactive)
-  (with-current-buffer (get-buffer google-bufname)
+  (with-current-buffer (get-buffer google-suggest-bufname)
     (unless (bobp)
-      (google-clear-highlight)
+      (google-suggest-clear-highlight)
       (forward-line -1)
-      (google-item-selected))))
+      (google-suggest-item-selected))))
 
-
-(defun google-item-selected ()
-  (let ((item (with-current-buffer (get-buffer google-bufname)
-                (google-highlight-line)
+(defun google-suggest-item-selected ()
+  (let ((item (with-current-buffer (get-buffer google-suggest-bufname)
+                (google-suggest-highlight-line)
                 (buffer-substring-no-properties (line-beginning-position)
                                                 (line-end-position)))))
     (select-window (minibuffer-window))
     (delete-minibuffer-contents)
     (insert item)
-    (setq google-input item)))
-
-;; (completing-read "yay:" '("1" "2" "3"))
-;; (howdoyou-query (google-search))
+    (setq google-suggest-input item)))
