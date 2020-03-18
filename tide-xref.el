@@ -2,7 +2,7 @@
 
 ;; define handle
 (defun xref-tide-xref-backend ()
-  "Xref-Js2 backend for Xref."
+  "Xref-tide backend for xref."
   'xref-tide)
 
 (cl-defmethod xref-backend-identifier-at-point ((_backend (eql xref-tide)))
@@ -10,6 +10,9 @@
 
 (cl-defmethod xref-backend-references ((_backend (eql xref-tide)) symbol)
   (tide-xref--find-references))
+
+;; (cl-defmethod xref-backend-definitions ((_backend (eql xref-tide)) symbol)
+;;   (tide-xref--find-definitions))
 
 (defun tide-xref--make-reference (reference)
   "Make xref object from RERERENCE."
@@ -23,7 +26,7 @@
     (xref-make line-text
                (xref-make-file-location full-file-name
                                         line-number
-                                        0))))
+                                        start))))
 
 (defun tide-xref--find-references ()
   "Return references."
@@ -31,6 +34,19 @@
     (tide-on-response-success response
         (let ((references (tide-plist-get response :body :refs)))
           (-map #'tide-xref--make-reference references)))))
+
+
+;; this is not practical, since tide-command:definition is an async you must
+;; wait on it to return and the outcome would be the same as the current
+;; solution but it could be worse because of your blocking implementation.
+;; (defun tide-xref--find-definitions ()
+;;   "Return definitions."
+;;   (let* (
+;;          (response (tide-command:definition cb)))
+;;     (tide-on-response-success response
+;;         (when-let ((definitions (tide-plist-get response :body :refs)))
+;;           (message "thanh3: %s" definitions)
+;;           (-map #'tide-xref--make-reference definitions)))))
 
 
 (add-hook 'tide-mode-hook (lambda ()
