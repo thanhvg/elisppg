@@ -16,7 +16,7 @@
     (get-buffer-create (car buffers))))
 
 (spacemacs|define-custom-layout "@www"
-  :binding "n"
+  :binding "w"
   :body
   (switch-to-buffer (thanh/find-buffer thanh/net-buffers)))
   
