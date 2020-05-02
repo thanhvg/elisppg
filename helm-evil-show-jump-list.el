@@ -44,7 +44,7 @@
                          (buffer-name)
                          (line-number-at-pos)
                          (replace-regexp-in-string "\n$" "" (thing-at-point 'line)))
-                 (list jump)))))
+                 jump))))
           (evil--jumps-savehist-sync)))
 
 
@@ -60,9 +60,9 @@
   (interactive)
   (helm :sources (helm-build-sync-source "Evil Jumps"
                    :candidates (helm-evil-show-jumps-alist)
-                   :action (lambda (candidate)
-                             ;; (message "%s" candidate)))
-                             (helm-evil--show-jumps-select-action (car candidate))))
+                   :action #'helm-evil--show-jumps-select-action)
+                   ;; :action (lambda (candidate)
+                   ;;           (message "%s" candidate)))
         :buffer "*helm-evil-jumps*"))
 
 (helm-evil-show-jumps-alist)
