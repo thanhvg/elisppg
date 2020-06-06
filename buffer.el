@@ -1,17 +1,6 @@
 ;; make buffer list
-(buffer-list)
-
-(defun spacemacs//get-recent-buffers-3 ()
-  (seq-remove #'spacemacs//layout-not-contains-buffer-p (buffer-list)))
 
 (spacemacs//get-recent-buffers)
-(spacemacs//get-recent-buffers-2)
-(spacemacs//get-recent-buffers-3)
-
-(frame-parameter nil 'buffer-predicate)
-
-(defun spacemacs//get-recent-buffers-2 ()
-  (seq-filter (frame-parameter nil 'buffer-predicate) (buffer-list)))
 
 (defun helm-buffer-p (buffer)
   (string-prefix-p "*helm"
@@ -27,8 +16,8 @@
 
 (defun spacemacs//switch-to-buff-by-pos (pos)
   (let ((my-buff (elt (spacemacs//get-recent-buffers) (+ pos 1))))
-                 (message "buffer %s" (buffer-name my-buff)
-                 (switch-to-buffer my-buff))))
+    (message "buffer %s" (buffer-name my-buff)
+             (switch-to-buffer my-buff))))
 
 ;; (spacemacs//switch-to-buff-by-pos 2)
 
@@ -44,36 +33,33 @@
   (let ((my-index 1)
         (my-string "")
         (my-buffer-list (cdr (spacemacs//get-recent-buffers)))
-        (my-first-entry-done nil))
+        (my-first-entry-done nil)
+        (my-max-len (- (frame-total-cols) 45))
+        (my-b-key " [b] list-buffers"))
+    (add-text-properties 2 3 '(face hydra-face-blue) my-b-key)
     (while (and (< my-index 10) my-buffer-list)
       (setq my-string (concat my-string
                               (if my-first-entry-done
-                                  (format " | %s:" my-index)
+                                  (format " | %s:" (propertize (format "%s" my-index) 'face 'hydra-face-blue))
                                 (setq my-first-entry-done t)
-                                (format " %s:" my-index))
+                                (format " %s:" (propertize (format "%s" my-index) 'face 'hydra-face-blue)))
                               (buffer-name (car my-buffer-list))))
       (incf my-index)
       (setq my-buffer-list (cdr my-buffer-list)))
     ;; (substring my-string 0 (- (frame-total-cols) 15))))
-    my-string))
+    (if (< (length my-string) my-max-len)
+        (concat my-string my-b-key)
+      (concat (substring my-string 0 (- my-max-len 3))
+              "..." my-b-key))))
 
 (spacemacs//buffers-ts-hint)
-
-(spacemacs|transient-state-format-hint buffers
-  spacemacs--buffers-ts-full-hint
-  "\n
- [_0_.._9_]^^     nth/new layout    [_a_]^^   add buffer
- [_b_]^^^^        buffer in layout  [_r_]^^   remove current buffer
- ^^^^^^                             [_<_/_>_] move layout left/right
- ^^^^^^                             [_?_]^^   toggle help")
 
 (spacemacs|define-transient-state buffers
   :title "Buffers Transient State"
   :hint-is-doc t
   :dynamic-hint (spacemacs//buffers-ts-hint)
   :bindings
-  ;; need to exit in case number doesn't exist
-  ;; ("?" spacemacs//buffers-ts-toggle-hint)
+  ("b" lazy-helm/helm-mini :exit t)
   ("1" spacemacs/switch-to-buff-1 :exit t)
   ("2" spacemacs/switch-to-buff-2 :exit t)
   ("3" spacemacs/switch-to-buff-3 :exit t)
