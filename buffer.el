@@ -26,7 +26,7 @@
 
 
 (defun spacemacs//switch-to-buff-by-pos (pos)
-  (let ((my-buff (elt (spacemacs//get-recent-buffers) (+ pos 2))))
+  (let ((my-buff (elt (spacemacs//get-recent-buffers) (+ pos 1))))
                  (message "buffer %s" (buffer-name my-buff)
                  (switch-to-buffer my-buff))))
 
@@ -54,29 +54,10 @@
                               (buffer-name (car my-buffer-list))))
       (incf my-index)
       (setq my-buffer-list (cdr my-buffer-list)))
-    (substring my-string 0 (- (frame-total-cols) 15))))
-    ;; (substring my-string 0 10)))
+    ;; (substring my-string 0 (- (frame-total-cols) 15))))
+    my-string))
 
 (spacemacs//buffers-ts-hint)
-
-(defun spacemacs//buffers-ts-hint-2 ()
-  "Return a one liner string containing all the buffer names."
-  (let* ((persp-list (or (persp-names-current-frame-fast-ordered)
-                         (list persp-nil-name)))
-         (formatted-persp-list
-          (concat " "
-                  (mapconcat (lambda (persp)
-                               (spacemacs//layout-format-name
-                                persp (position persp persp-list)))
-                             persp-list " | "))))
-    (concat
-     formatted-persp-list
-     (if spacemacs--layouts-ts-full-hint-toggle
-         spacemacs--layouts-ts-full-hint
-       (concat "  (["
-               (propertize "?" 'face 'hydra-face-red)
-               "] help)")))))
-
 
 (spacemacs|transient-state-format-hint buffers
   spacemacs--buffers-ts-full-hint
@@ -107,4 +88,4 @@
 ;; (spacemacs/switch-to-buff-2)
 ;; (elt (spacemacs//get-recent-buffers) 20)
 
-(window-total-width)
+(spacemacs/set-leader-keys "." 'spacemacs/buffers-transient-state/body)
