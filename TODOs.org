@@ -52,3 +52,12 @@ reuse part of evil-show-marks to generate helm source
 use evil-goto-mark to go to buffer
 * helm lsp 
 symbols with context 
+* ivy from doom
+[x] full length highlight
+[ ] better-jump
+[ ] kill ring
+[ ] ivy-rich
+https://github.com/Yevgnen/ivy-rich/issues/87
+https://github.com/hlissner/doom-emacs/issues/1317
+https://github.com/syl20bnr/spacemacs/issues/10101
+https://github.com/Yevgnen/ivy-rich/pull/57
