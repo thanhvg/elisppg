@@ -61,3 +61,19 @@ https://github.com/Yevgnen/ivy-rich/issues/87
 https://github.com/hlissner/doom-emacs/issues/1317
 https://github.com/syl20bnr/spacemacs/issues/10101
 https://github.com/Yevgnen/ivy-rich/pull/57
+[ ] c-s bound to minibuffer history
+#+begin_src elisp
+  ;; A Doom convention where C-s on popups and interactive searches will invoke
+  ;; ivy/helm for their superior filtering.
+  (when-let (command (cond ((featurep! :completion ivy)
+                            #'counsel-minibuffer-history)
+                           ((featurep! :completion helm)
+                            #'helm-minibuffer-history)))
+    (define-key!
+      :keymaps (append +default-minibuffer-maps
+                       (when (featurep! :editor evil +everywhere)
+                         '(evil-ex-completion-map)))
+      "C-s" command))
+#+end_src
+  
+
