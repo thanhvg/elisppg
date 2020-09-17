@@ -79,3 +79,13 @@ In the GUI, this is the same as `ivy-format-function-line'."
     (:before (&rest _) ivy-rich-reset-cache)
   (clrhash ivy-rich--ivy-switch-buffer-cache))
 
+
+;; https://github.com/abo-abo/swiper/issues/2412
+(setq ivy-format-functions-alist '((t . ivy-format-function-line)))
+
+(setf (alist-get 't ivy-format-functions-alist)
+      #'ivy-format-function-line)
+
+;; (set-face-extend 'ivy-highlight-face t)
+;; (set-face-extend 'ivy-prompt-match t)
+
