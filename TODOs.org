@@ -61,7 +61,7 @@ https://github.com/Yevgnen/ivy-rich/issues/87
 https://github.com/hlissner/doom-emacs/issues/1317
 https://github.com/syl20bnr/spacemacs/issues/10101
 https://github.com/Yevgnen/ivy-rich/pull/57
-[ ] c-s bound to minibuffer history
+[ ] c-r bound to minibuffer history in spacemacs
 #+begin_src elisp
   ;; A Doom convention where C-s on popups and interactive searches will invoke
   ;; ivy/helm for their superior filtering.
@@ -75,5 +75,6 @@ https://github.com/Yevgnen/ivy-rich/pull/57
                          '(evil-ex-completion-map)))
       "C-s" command))
 #+end_src
-  
+
+[ ]  
 
