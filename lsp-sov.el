@@ -84,8 +84,8 @@
     (lsp-sov--clear-this ov)))
 
 (defun lsp-sov--get-buffer-overlays (&optional val)
-  (seq-filter (if val
-                  (lambda (it)
-                    (lsp-sov--overlay-get it val))
-                #'lsp-sov--overlay-get)
-              (overlays-in (point-min) (point-max))))
+  (-filter (if val
+               (lambda (it)
+                 (lsp-sov--overlay-get it val))
+             #'lsp-sov--overlay-get)
+           (overlays-in (point-min) (point-max))))
