@@ -78,7 +78,6 @@ https://github.com/Yevgnen/ivy-rich/pull/57
 
 [ ]  
 
-
 * lsp-sov
 a function to refresh the symbol list
 
@@ -89,3 +88,8 @@ put it in the hash table { face: symbol }
 
 then maphash the table 
 
+
+* grep-buffer-maker
+can't handle non projet files
+must avoid non file buffers 
+should a mode to turn on the key binding to the feature?
