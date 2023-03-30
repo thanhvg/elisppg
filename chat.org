@@ -1,0 +1,18 @@
+* question 1: hello
+I'm asking this
+about this
+
+And I am asking that
+** answer
+hi im answering
+
+* question 1: hello
+I'm asking one more
+
+blah blah
+** answer
+hi im answering
+
+#+begin_src python
+print("hello")
+#+end_src

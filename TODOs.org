@@ -87,9 +87,108 @@ for each overlay get the symbol info and face value
 put it in the hash table { face: symbol }
 
 then maphash the table 
-
-
 * grep-buffer-maker
 can't handle non projet files
 must avoid non file buffers 
 should a mode to turn on the key binding to the feature?
+* chat gpt org mode design
+question in a node, and body
+answer is body of a child node
+
+get node lists
+
+* question 1: hello
+I'm asking this
+** answer
+hi im answering
+
+* question 1: hello
+I'm asking this
+** answer
+hi im answering
+
+* api to use
+* org data
+#+begin_src elisp
+(org-data nil
+          (headline
+           (:raw-value "question 1: hello" :begin 1 :end 64 :pre-blank 0 :contents-begin 21 :contents-end 63 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 1 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 1 :title
+                       (#("question 1: hello" 0 17
+                          (:parent #1)))
+                       :parent #0)
+           (section
+            (:begin 21 :end 37 :contents-begin 21 :contents-end 37 :post-blank 0 :post-affiliated 21 :parent #1)
+            (paragraph
+             (:begin 21 :end 37 :contents-begin 21 :contents-end 37 :post-blank 0 :post-affiliated 21 :parent #2)
+             #("I'm asking this
+" 0 16
+(:parent #3))))
+           (headline
+            (:raw-value "answer" :begin 37 :end 63 :pre-blank 0 :contents-begin 47 :contents-end 63 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 37 :title
+                        (#("answer" 0 6
+                           (:parent #2)))
+                        :parent #1)
+            (section
+             (:begin 47 :end 64 :contents-begin 47 :contents-end 63 :post-blank 1 :post-affiliated 47 :parent #2)
+             (paragraph
+              (:begin 47 :end 63 :contents-begin 47 :contents-end 63 :post-blank 0 :post-affiliated 47 :parent #3)
+              #("hi im answering
+" 0 16
+(:parent #4))))))
+          (headline
+           (:raw-value "question 1: hello" :begin 64 :end 182 :pre-blank 0 :contents-begin 84 :contents-end 182 :level 1 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 64 :title
+                       (#("question 1: hello" 0 17
+                          (:parent #1)))
+                       :parent #0)
+           (section
+            (:begin 84 :end 111 :contents-begin 84 :contents-end 111 :post-blank 0 :post-affiliated 84 :parent #1)
+            (paragraph
+             (:begin 84 :end 101 :contents-begin 84 :contents-end 100 :post-blank 1 :post-affiliated 84 :parent #2)
+             #("I'm asking this
+" 0 16
+(:parent #3)))
+            (paragraph
+             (:begin 101 :end 111 :contents-begin 101 :contents-end 111 :post-blank 0 :post-affiliated 101 :parent #2)
+             #("blah blah
+" 0 10
+(:parent #3))))
+           (headline
+            (:raw-value "answer" :begin 111 :end 182 :pre-blank 0 :contents-begin 121 :contents-end 182 :level 2 :priority nil :tags nil :todo-keyword nil :todo-type nil :post-blank 0 :footnote-section-p nil :archivedp nil :commentedp nil :post-affiliated 111 :title
+                        (#("answer" 0 6
+                           (:parent #2)))
+                        :parent #1)
+            (section
+             (:begin 121 :end 182 :contents-begin 121 :contents-end 182 :post-blank 0 :post-affiliated 121 :parent #2)
+             (paragraph
+              (:begin 121 :end 138 :contents-begin 121 :contents-end 137 :post-blank 1 :post-affiliated 121 :parent #3)
+              #("hi im answering
+" 0 16
+(:parent #4)))
+             (src-block
+              (:language "python" :switches nil :parameters nil :begin 138 :end 182 :number-lines nil :preserve-indent nil :retain-labels t :use-labels t :label-fmt nil :value "print(\"hello\")
+" :post-blank 0 :post-affiliated 138 :parent #3))))))
+#+end_src
+* chat org
+first level header and its section is question, the member subheader is the answer
+
+* chat gpt api
+https://platform.openai.com/docs/api-reference/chat/create?lang=python
+
+they only support python, nodejs is community supported.
+only python can stream response
+
+https://platform.openai.com/docs/guides/chat/introduction
+
+# Note: you need to be using OpenAI Python v0.27.0 for the code below to work
+import openai
+
+openai.ChatCompletion.create(
+  model="gpt-3.5-turbo",
+  messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Who won the world series in 2020?"},
+        {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
+        {"role": "user", "content": "Where was it played?"}
+    ]
+)
+
