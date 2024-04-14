@@ -91,6 +91,33 @@ then maphash the table
 can't handle non projet files
 must avoid non file buffers 
 should a mode to turn on the key binding to the feature?
+** bug with extra new line
+this will cause wgrep to take the last line as grep footer
+
+(defun wgrep-prepare-header&footer ()
+  (let (beg end)
+    ;; Set read-only grep result header
+    (goto-char (point-min))
+    (setq beg (point-min))
+    ;; See `compilation-start'
+    (forward-line 4)
+    (setq end (point))
+    (put-text-property beg end 'read-only t)
+    (put-text-property beg end 'wgrep-header t)
+    ;; Set read-only grep result footer
+    (goto-char (point-max))
+    (forward-line -1)
+    (when (re-search-backward "^$" end t)
+      (setq beg (point))
+      (setq end (point-max))
+      (when beg
+        (put-text-property beg end 'read-only t)
+        (put-text-property beg end 'wgrep-footer t)))))       
+
+*** don't create new line        
+but new line is a hint of new block
+*** add extra two new lines 
+*** add a default footer
 * chat gpt org mode design
 question in a node, and body
 answer is body of a child node
@@ -192,3 +219,29 @@ openai.ChatCompletion.create(
     ]
 )
 
+* ducking
+input
+a list of buffers
+a list of 10 letters 
+a suffix string
+a max length
+
+output
+
+a string of from the list of buffers each prefixed with a letter concat with teh suffix string
+the number of the buffers in the list
+
+the length of the string cannot be greater than max length. If is is then the buffer must be cut off
+and added ... then concat with suffix string
+
+also
+
+loop on buffers
+state total length 
+state current length
+state letter index
+create new buffer name append with the letter
+calc current length of the new buffer
+if length + current lenght < max do it update the current length continue
+else length is greater
+can buffer is ok to add ... 

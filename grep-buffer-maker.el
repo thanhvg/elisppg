@@ -35,8 +35,9 @@
             (define-key map (kbd "C-c C-t") 'grep-buffer-maker-toggle)
             map))
 
-(defun grep-buffer-maker--send-region (begin end)
-  "Send buffer content between BEGIN and END."
+(defun grep-buffer-maker--get-region-num-vs-lines (begin end)
+  "Get buffer content between BEGIN and END.
+Return list of (lin-num line)."
   (let ((result nil))
     (save-excursion
       (goto-char end)
@@ -55,45 +56,45 @@
       (setq buff (generate-new-buffer buff-name))
       (with-current-buffer buff
         (insert (format "-*- mode:grep; default-directory: %S -*-\n\n\n"
-                        project))))
+                        project))
+        ;; insert grep footer
+        (insert "\n*end of grep results*")))
     (switch-to-buffer-other-window buff)))
 
 (defun grep-buffer-maker--write-cands (sequence project filename)
-  "Write candidate to buffer."
+  "Write candidate to buffer.
+From a SEQUENCE of num-vs-lines for PROJECT and FILENAME."
   (with-current-buffer (grep-buffer-maker--ensure-buffer project)
     (setq buffer-read-only nil)
     (goto-char (point-max))
+    (forward-line -2) ;; go above the grep footer
     (newline)
     (mapc (lambda (it)
             (insert (format "./%s:%s:%s" filename (car it) (cdr it)) ))
           sequence)
     (grep-mode)
-    (grep-buffer-maker-mode)
-    (run-hooks 'grep-buffer-maker-mode-hook)))
+    (grep-buffer-maker-mode)))
 
 ;;;###autoload
 (defun grep-buffer-maker-region (begin end)
   "Send buffer content between BEGIN and END."
   (interactive "r")
-  (grep-buffer-maker--write-cands (grep-buffer-maker--send-region begin end)
-                                  (cdr (project-current))
-                                  (file-relative-name
-                                   (file-truename (buffer-file-name)) (cdr (project-current)))))
+  (grep-buffer-maker--write-cands
+   (grep-buffer-maker--get-region-num-vs-lines begin end)
+   (cdr (project-current))
+   (file-relative-name
+    (file-truename (buffer-file-name)) (cdr (project-current)))))
 
 ;;;###autoload
 (defun grep-buffer-maker-dwim ()
   "Send buffer content."
   (interactive)
   (when buffer-file-name
-      (if (region-active-p)
-       (grep-buffer-maker-region (region-beginning) (region-end))
-     (grep-buffer-maker-region
-      (save-excursion
-        (beginning-of-line)
-        (point))
-      (save-excursion
-        (end-of-line)
-        (point))))))
+    (if (region-active-p)
+        (grep-buffer-maker-region (region-beginning) (region-end))
+      (grep-buffer-maker-region
+       (line-beginning-position)
+       (line-end-position)))))
 
 (defun grep-buffer-maker-toggle ()
   "Toggle buffer read-only state."
